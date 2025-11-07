@@ -13,6 +13,10 @@ const userSchema = mongoose.Schema(
         hashedPassword: {
             type: String,
             required: [true, "password is required"],
+        },
+        online: {
+            type: Boolean,
+            default: false
         }
     },
     {
