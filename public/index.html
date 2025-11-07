@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Socket.IO chat</title>
+    <style>
+        body {
+            margin: 0;
+            padding-bottom: 3rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #form {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 0.25rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            height: 3rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        #input {
+            border: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            border-radius: 2rem;
+            margin: 0.25rem;
+        }
+
+        #input:focus {
+            outline: none;
+        }
+
+        #form>button {
+            background: #333;
+            border: none;
+            padding: 0 1rem;
+            margin: 0.25rem;
+            border-radius: 3px;
+            outline: none;
+            color: #fff;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages>li {
+            padding: 0.5rem 1rem;
+        }
+
+        #messages>li:nth-child(odd) {
+            background: #efefef;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 id="roomid"></h2>
+    <input type="text" id="roomInput" placeholder="Enter Room ID to send" />
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" /><button id="sendBtn">Send</button>
+    </form>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io({
+            auth: {
+                token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGQwMGUyZTFmYWJlNGEwNmVkMWM1OSIsImlhdCI6MTc2MjU0MjkwMSwiZXhwIjoxNzYyNTQ2NTAxfQ.yqWQUex1qdqmUPagR3EEb9OHA8R8SVuUcT67LV_rcdc"
+            }
+        });
+
+        socket.on("connect", () => {
+            document.getElementById('roomid').innerText = "Room ID: " + socket.id;
+        })
+
+        socket.on('chat-message', function (msg) {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            document.getElementById('messages').appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+
+        socket.on("connect_error", (err) => {
+            console.error("Connection error:", err.message); // e.g., "Invalid token"
+            // Optional: show UI feedback or retry logic
+        });
+
+        const sendBtn = document.getElementById('sendBtn');
+        const input = document.getElementById('input');
+        sendBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            let roomId = document.getElementById('roomInput').value;
+            if (input.value && roomId) {
+                socket.emit('chat-message', { msg: input.value, roomId: roomId });
+                input.value = '';
+            }
+        }); 
+    </script>
+</body>
+
+</html>
