@@ -39,7 +39,17 @@ export const conversationRepository = {
     async get({ id }) {
         try {
 
-            const result = await conversation.findById({ id })
+            console.log(id,"thisi s s ss ")
+            const result = await conversation.findById(id);
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    },
+    async userConversations({ userId }) {
+        try {
+            // find all conversations that include the userId in participants
+            const result = await conversation.find({ participants: userId });
             return result;
         } catch (error) {
             throw error;

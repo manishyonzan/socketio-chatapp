@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO chat</title>
+    <style>
+        body {
+            margin: 0;
+            padding-bottom: 3rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            border: .5px solid rgb(214, 208, 208);
+            height: 85vh;
+        }
+
+        .container-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            overflow-y: scroll;
+
+            h3 {
+                padding: 0;
+                margin: 0;
+                text-align: center;
+            }
+        }
+
+        .container-left .conversation {
+            border: 0.5px solid #e9e1e1;
+            color: #333;
+            padding: 5px 0px;
+
+            h4 {
+                margin: 0;
+                padding: 0;
+            }
+
+            h5 {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        .container-left--people {
+            border: 0.5px solid #e9e1e1;
+            color: #333;
+            padding: 5px 0px;
+
+            h4 {
+                margin: 0;
+                padding: 0;
+            }
+
+            h5 {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        .container-right {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            background-color: #e9e1e1;
+        }
+
+        #form {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 0.25rem;
+            display: flex;
+            height: 3rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        #input {
+            border: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            border-radius: 2rem;
+            margin: 0.25rem;
+        }
+
+        #input:focus {
+            outline: none;
+        }
+
+        #form>button {
+            background: #333;
+            border: none;
+            padding: 0 1rem;
+            margin: 0.25rem;
+            border-radius: 3px;
+            outline: none;
+            color: #fff;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages>li {
+            padding: 0.5rem 1rem;
+        }
+
+        #messages>li:nth-child(odd) {
+            background: #efefef;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 id="roomid"></h2>
+    <input type="text" id="roomInput" placeholder="Enter Room ID to send" />
+    <div class="container">
+        <div class="container-left">
+            <h3>Messages</h3>
+            <div class="conversation">
+                <h4>conversation name</h3>
+                    <h5>last message</h5>
+            </div>
+
+            <h3>Unconnected people</h3>
+
+            <div class="container-left--people">
+                <h4>conversation name</h3>
+                    <h5>last message</h5>
+            </div>
+
+        </div>
+        <div class="container-right">
+            <ul id="messages"></ul>
+            <form id="form" action="">
+                <input id="input" autocomplete="off" /><button id="sendBtn">Send</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io({
+            auth: {
+                token: `Bearer ${localStorage.getItem('chatapp-token')}`
+            }
+        });
+
+        socket.on("connect", () => {
+            document.getElementById('roomid').innerText = "Room ID: " + socket.id;
+        })
+
+        socket.on('chat-message', function (msg) {
+            const item = document.createElement('li');
+            const chatwindow = document.getElementById('messages');
+            // { message: msg.msg, senderId: socket.user.id, content: msg.msg } this is the msg object
+            item.textContent = msg.message;
+            document.getElementById('messages').appendChild(item);
+            chatwindow.scrollTo(0, document.body.scrollHeight);
+        });
+
+        function joinRoom(roomId = "690f66cad2aad8f34f94dbac") {
+            console.log("joining room:", roomId);
+            socket.emit("join-room", roomId);
+        }
+
+        joinRoom();
+
+
+        socket.on("connect_error", (err) => {
+            console.error("Connection error:", err.message); // e.g., "Invalid token"
+            // Optional: show UI feedback or retry logic
+        });
+
+        const sendBtn = document.getElementById('sendBtn');
+        const input = document.getElementById('input');
+        sendBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            let roomId = document.getElementById('roomInput').value;
+
+            // for now 
+            roomId = "690f66cad2aad8f34f94dbac"
+            if (input.value && roomId) {
+                socket.emit('chat-message', { msg: input.value, roomId: roomId });
+                input.value = '';
+            }
+        });
+
+
+
+
+
+        // get messages and create rooms
+
+        // const createRooms = ()
+    </script>
+
+    <script>
+        // check whether user is logged in
+        const token = localStorage.getItem('chatapp-token');
+        if (!token) {
+            // redirect to login page
+            window.location.href = '/index.html';
+        }  
+    </script>
+
+</body>
+
+</html>

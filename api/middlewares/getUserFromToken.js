@@ -21,7 +21,7 @@ const getUserFromToken = async (req, res, next) => {
             }
 
             req.user = {
-                id: decoded.userId
+                id: decoded.id
             };
             // console.log(decoded.userId, "the response from the ")
 

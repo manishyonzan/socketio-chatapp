@@ -15,7 +15,7 @@ const messageSchema = mongoose.Schema(
             required: [true, "message content is required"]
         },
         readBy :{
-            type : Array(String),
+            type : [String],
             default: []
         }
     },

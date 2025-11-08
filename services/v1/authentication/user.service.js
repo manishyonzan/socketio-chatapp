@@ -65,8 +65,7 @@ const userService = {
 
 
             isValid = await bcrypt.compare(password, userGet.hashedPassword);
-            if (!isValid) return res.status(401).json({ message: "Invalid credentials" });
-
+            if (!isValid) throw new AppError("Invalid credentials", 401);
             const token = jwt.sign(
                 { id: userGet._id.toString() },
                 process.env.JWT_SECRET,

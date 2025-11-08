@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import { chatHandler } from './handlers/chat.handler.js';
-import { verifyTokenForSocket } from '../utils/generalUtils.js';
+import { verifyTokenForSocket } from "../utils/generalUtils.js"
+import jwt from 'jsonwebtoken';
 
 export const initializeSocket = (server) => {
     const io = new Server(server, {
@@ -10,22 +11,31 @@ export const initializeSocket = (server) => {
         }
     });
 
-    io.use(async (socket, next) => {
+    io.use((socket, next) => {
         try {
             const token = socket.handshake.auth.token?.split(' ')[1];
-            console.log("Socket token:", token);
+            console.log("Socket token:lalalal", token.trim());
 
-            const decoded = await verifyTokenForSocket(token);
+            console.log("Token length:", token.length);
+            console.log("Token char codes:", [...token].map(c => c.charCodeAt(0)))
+
+            const decoded = verifyTokenForSocket(token);
+
+            console.log("jajajjaj")
             console.log("Socket token decoded:", decoded);
             socket.user = decoded;
+            socket.currentusers = socket.currentusers ?? [];
             if (decoded) next();
         } catch (error) {
 
+            console.log("jsjsjssjsjsjsj")
             next(new Error("Authentication error"));
         }
     });
     io.on("connection", (socket) => {
         console.log(`User connected: ${socket.id}`);
+
+        socket.currentusers = [...socket.currentusers, { userId: socket.user.id, socketId: socket.id }];
 
         // Initialize chat handlers
         chatHandler(io, socket);
