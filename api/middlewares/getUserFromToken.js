@@ -5,13 +5,10 @@ const getUserFromToken = async (req, res, next) => {
     const token = req.header("authorization");
     if (token) {
         try {
-            console.log(token)
             const [authToken, ...rest] = token.split(' ').reverse();
 
 
             const decoded = await jwt.verify(authToken, process.env.JWT_SECRET);
-
-            console.log(decoded, "verified or not");
 
 
             const currentTime = Math.floor(Date.now() / 1000);
@@ -20,14 +17,13 @@ const getUserFromToken = async (req, res, next) => {
                 throw new AppError("Expired", 500);
             }
 
+
             req.user = {
                 id: decoded.id
             };
-            // console.log(decoded.userId, "the response from the ")
 
             next()
         } catch (error) {
-            console.log("error here")
             next(error);
         }
     }
