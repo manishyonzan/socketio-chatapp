@@ -37,6 +37,8 @@
             border: 0.5px solid #e9e1e1;
             color: #333;
             padding: 5px 0px;
+            cursor: pointer;
+
 
             h4 {
                 margin: 0;
@@ -53,6 +55,8 @@
             border: 0.5px solid #e9e1e1;
             color: #333;
             padding: 5px 0px;
+            cursor: pointer;
+
 
             h4 {
                 margin: 0;
@@ -109,6 +113,7 @@
             list-style-type: none;
             margin: 0;
             padding: 0;
+
         }
 
         #messages>li {
@@ -127,16 +132,20 @@
     <div class="container">
         <div class="container-left">
             <h3>Messages</h3>
-            <div class="conversation">
-                <h4>conversation name</h3>
-                    <h5>last message</h5>
+            <div id="conversation-div">
+                <div class="conversation">
+                    <h4>conversation name</h3>
+                        <h5>last message</h5>
+                </div>
             </div>
 
-            <h3>Unconnected people</h3>
+            <h3>all people</h3>
 
-            <div class="container-left--people">
-                <h4>conversation name</h3>
-                    <h5>last message</h5>
+            <div id="unconnected-div">
+                <div class="container-left--people">
+                    <h4>conversation name</h3>
+                        <h5>last message</h5>
+                </div>
             </div>
 
         </div>
@@ -157,6 +166,25 @@
             }
         });
 
+        let messagesGlobal = []
+        let userListGlobal = []
+
+        const setScreen = () => {
+
+            messagesGlobal.forEach((msg, index) => {
+
+                const item = document.createElement('li');
+                const chatwindow = document.getElementById('messages');
+                // { message: msg.msg, senderId: socket.user.id, content: msg.msg } this is the msg object
+                item.textContent = msg.content;
+                document.getElementById('messages').appendChild(item);
+            })
+        }
+
+        setScreen();
+
+        let roomIdGlobal = null;
+
         socket.on("connect", () => {
             document.getElementById('roomid').innerText = "Room ID: " + socket.id;
         })
@@ -170,12 +198,13 @@
             chatwindow.scrollTo(0, document.body.scrollHeight);
         });
 
-        function joinRoom(roomId = "690f66cad2aad8f34f94dbac") {
+        function joinRoom(roomId) {
+            if (!roomId) return null;
             console.log("joining room:", roomId);
             socket.emit("join-room", roomId);
         }
 
-        joinRoom();
+        joinRoom(roomIdGlobal);
 
 
         socket.on("connect_error", (err) => {
@@ -187,23 +216,208 @@
         const input = document.getElementById('input');
         sendBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            let roomId = document.getElementById('roomInput').value;
+
+            if (!roomIdGlobal) return null;
+            let roomId = roomIdGlobal;
 
             // for now 
-            roomId = "690f66cad2aad8f34f94dbac"
             if (input.value && roomId) {
                 socket.emit('chat-message', { msg: input.value, roomId: roomId });
                 input.value = '';
             }
         });
 
-
-
-
-
         // get messages and create rooms
 
-        // const createRooms = ()
+        const getRooms = (firstUserId, secondUserId) => {
+            fetch('/api/v1/connection/conversations', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('chatapp-token')}`
+                }
+            })
+                .then(async response => {
+                    return response.json();
+                })
+                .then(data => {
+                    data.data.forEach(element => {
+                        const item = document.createElement("div");
+                        item.className = "conversation";
+                        item.setAttribute("data-roomid", element.name);
+                        const header = document.createElement("h4")
+                        header.textContent = element.name;
+                        item.appendChild(header);
+                        const message = document.createElement("h5")
+                        message.textContent = element.type;
+                        item.appendChild(message);
+
+                        item.addEventListener("click", () => {
+                            const id = item.getAttribute("data-roomid");
+                            roomIdGlobal = item.getAttribute("data-roomid");
+
+                            joinRoom(id)
+
+                            const newItem = document.createElement("ul");
+                            newItem.id = "messages";
+                            document.getElementById('messages').replaceWith(newItem);
+
+                            fetch(`/api/v1/connection/messages/${element.name}`, {
+                                method: 'GET',
+                                credentials: 'same-origin',
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem('chatapp-token')}`
+                                }
+                            })
+                                .then(res => res.json())
+                                .then(msg => {
+                                    messagesGlobal = msg.data;
+
+                                    msg.data.forEach((eachMessage, index) => {
+                                        const item = document.createElement('li');
+                                        const chatwindow = document.getElementById('messages');
+                                        // { message: msg.msg, senderId: socket.user.id, content: msg.msg } this is the msg object
+                                        item.textContent = eachMessage.content;
+                                        document.getElementById('messages').appendChild(item);
+                                        chatwindow.scrollTo(0, document.body.scrollHeight);
+                                    })
+                                    // handle response
+                                })
+                                .catch(err => {
+                                    console.error("Fetch error:", err);
+                                });
+                        });
+
+
+
+                        const conversationListDiv = document.getElementById("conversation-div");
+                        conversationListDiv.appendChild(item);
+                    });
+
+                    console.log("Conversation data:", data);
+                })
+                .catch(error => {
+                    console.error('Error creating/getting conversation:', error);
+                });
+        };
+
+        getRooms();
+
+
+
+        // get all users
+        const getAllUser = async () => {
+
+            const user = await fetch('/api/v1/authentication/user/allusers', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('chatapp-token')}`
+                }
+
+            })
+            const data = await user.json()
+            userListGlobal = [...data.data]
+            console.log(userListGlobal, "all data")
+
+
+
+            // creting the userlist ui
+            createUserUi(userListGlobal);
+
+        }
+
+        getAllUser();
+
+
+        const createUserUi = (users) => {
+            users.forEach(element => {
+                const item = document.createElement("div");
+                item.className = "container-left--people";
+                item.setAttribute("data-userid", element._id);
+                const header = document.createElement("h4")
+                header.textContent = element.name;
+                item.appendChild(header);
+                const message = document.createElement("h5")
+                message.textContent = "click to message";
+                item.appendChild(message);
+
+                item.addEventListener("click", () => {
+
+
+                    fetch(`/api/v1/connection/conversations`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ type: "private", participants: [item.getAttribute("data-userid")] }),
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('chatapp-token')}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            console.log("on user click", data)
+                            userListGlobal = [...userListGlobal, data.data];
+
+
+                            const item = document.createElement("div");
+                            item.className = "conversation";
+                            item.setAttribute("data-roomid", data.data.name);
+                            const header = document.createElement("h4")
+                            header.textContent = data.data.name;
+                            item.appendChild(header);
+                            const message = document.createElement("h5")
+                            message.textContent = data.data.type;
+                            item.appendChild(message);
+
+                            item.addEventListener("click", () => {
+                                const id = item.getAttribute("data-roomid");
+                                roomIdGlobal = item.getAttribute("data-roomid");
+
+                                fetch(`/api/v1/connection/messages/${element.name}`, {
+                                    method: 'GET',
+                                    credentials: 'same-origin',
+                                    headers: {
+                                        Authorization: `Bearer ${localStorage.getItem('chatapp-token')}`
+                                    }
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        messagesGlobal = data.data;
+                                        // handle response
+                                    })
+                                    .catch(err => {
+                                        console.error("Fetch error:", err);
+                                    });
+                            });
+
+
+
+                            const conversationListDiv = document.getElementById("conversation-div");
+                            conversationListDiv.appendChild(item);
+                            // handle response
+                        })
+                        .catch(err => {
+                            alert("room was already created with  this user");
+                            console.error("Fetch error:", err);
+                        });
+                });
+
+
+
+                const userListDiv = document.getElementById("unconnected-div");
+                userListDiv.appendChild(item);
+            })
+        };
+
+
+
+
+        // create rooms
+
+
+
     </script>
 
     <script>

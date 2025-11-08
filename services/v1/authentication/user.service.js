@@ -12,7 +12,6 @@ const userService = {
 
         let salt = bcrypt.genSaltSync(10);
         let hashedPassword = await bcrypt.hashSync(password, salt);
-        console.log(password, hashedPassword, "the hashed password");
         return (await Repository_V1.userRepository.create({
             name,
             email,
@@ -78,6 +77,16 @@ const userService = {
         }
 
 
+    },
+    async getAllUser({}){
+        try {
+            const allUser = Repository_V1.userRepository.getAllUser({});
+            return allUser
+
+            
+        } catch (error) {
+            throw error;
+        }
     }
 
 }

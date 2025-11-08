@@ -14,21 +14,15 @@ export const initializeSocket = (server) => {
     io.use((socket, next) => {
         try {
             const token = socket.handshake.auth.token?.split(' ')[1];
-            console.log("Socket token:lalalal", token.trim());
-
-            console.log("Token length:", token.length);
-            console.log("Token char codes:", [...token].map(c => c.charCodeAt(0)))
+        
 
             const decoded = verifyTokenForSocket(token);
 
-            console.log("jajajjaj")
-            console.log("Socket token decoded:", decoded);
             socket.user = decoded;
             socket.currentusers = socket.currentusers ?? [];
             if (decoded) next();
         } catch (error) {
 
-            console.log("jsjsjssjsjsjsj")
             next(new Error("Authentication error"));
         }
     });

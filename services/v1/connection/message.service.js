@@ -10,11 +10,10 @@ const messageService = {
         content,
     }) {
         try {
-            const getConversation = await conversationService.get({ id: conversationId });  
+            const getConversation = await conversationService.getByConversationId({ conversationId });
             // check if the user is in the conversation
-            const userExist = getConversation.participants.filter((item, index) => item.toString() == senderId);
+            const userExist = await getConversation[0].participants.filter((item, index) => item.toString() == senderId);
             if (userExist.length < 1) throw new AppError("Not authorized", 403);
-
             // create the message
             return (await Repository_V1.messageRepository.create({ content: content, conversationId: conversationId, senderId: senderId }));
         } catch (error) {
@@ -45,10 +44,10 @@ const messageService = {
     }) {
         try {
             // check if user is allowed to see the message
-            console.log(conversationId, "this is conversation id in message service");
-            const getConversation = await conversationService.get({ id: conversationId });
+            const getConversation = await conversationService.getByConversationId({ conversationId: conversationId });
+
             // check if the user is in the conversation
-            const userExist = await getConversation.participants.filter((item, index) => item == userId);
+            const userExist = await getConversation[0].participants.filter((item, index) => item.toString() == userId);
             if (!userExist) throw new AppError("Not authorized", 403);
 
             return (await Repository_V1.messageRepository.findByConversationId({ conversationId }));

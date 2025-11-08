@@ -1,6 +1,7 @@
 import e from "express";
 import userService from "../../../../services/v1/authentication/user.service.js";
 import bcrypt from "bcryptjs";
+import message from "../../../../database/models/message.model.js";
 
 export const userController = {
     create: async (req, res, next) => {
@@ -41,6 +42,17 @@ export const userController = {
             res.status(200).json({ message: "Token generated successfully", token: token });
         } catch (error) {
             next(error);
+        }
+    },
+    getAllUser: async (req, res, next) => {
+        try {
+
+            const users = await userService.getAllUser({});
+         
+            return res.status(200).json({ message: "Successfully fetched Users", data: users });
+        } catch (error) {
+            console.log(error, "the error");
+            next(error)
         }
     }
 

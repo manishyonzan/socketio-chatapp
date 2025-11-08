@@ -15,14 +15,11 @@ import jwt from 'jsonwebtoken';
 // }
 
 const verifyTokenForSocket = (token) => {
-    console.log("Verifying token in generalUtils:", jwt.verify(token, process.env.JWT_SECRET));
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Token verified:", decoded);
         return decoded;
     } catch (err) {
-        console.error("Token verification failed:", err.message);
         throw err;
     }
 }

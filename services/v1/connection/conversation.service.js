@@ -45,6 +45,14 @@ const conversationService = {
             throw error;
         }
     },
+    async getByConversationId({ conversationId }) {
+        try {
+            const getConversation = await Repository_V1.conversationRepository.getByConversationId({ conversationId: conversationId });
+            return getConversation;
+        } catch (error) {
+            throw error;
+        }
+    },
     async userConversations({ userId }) {
         try {
             // find all conversations that include the userId in participants

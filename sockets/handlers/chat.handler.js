@@ -16,6 +16,7 @@ export const chatHandler = (io, socket) => {
         senderId: socket.user.id,
         content: msg.msg,
       });
+      console.log("runnning here")
       io.to(roomId).emit("chat-message", { message: msg.msg, senderId: socket.user.id, content: msg.msg });
     } catch (error) {
       console.error("Error handling chat-message:", error);

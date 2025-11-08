@@ -7,17 +7,13 @@ export const userRepository = {
         email,
         password }) {
         try {
-            // logic to create a user in the database
-            console.log(name, email, password, "the data received in repository");
             const result = await User.create({
                 name: name,
                 email: email,
                 hashedPassword: password
             })
-            console.log("User created:", result);
             return result;
         } catch (error) {
-            console.log("Error creating user:", error);
             throw new AppError('Error creating user', 500);
         }
 
@@ -27,17 +23,14 @@ export const userRepository = {
     }) {
         try {
             const user = await User.findById(id);
-            console.log("User fetched:", user);
             return user;
         } catch (error) {
-            console.log("Error fetching user:", error);
             throw new AppError('Error fetching user', 500);
         }
     },
     async getUserByEmail({ email }) {
         try {
             const user = await User.findOne({ email: email });
-            console.log("User fetched by email:", user);
             return user;
             
         } catch (error) {
@@ -49,11 +42,20 @@ export const userRepository = {
         name, }) {
         try {
             const user = await User.findByIdAndUpdate(id, { name }, { new: true });
-            console.log("User updated:", user);
             return user;
         } catch (error) {
-            console.log("Error updating user:", error);
             throw new AppError('Error updating user', 500);
+        }
+    },
+      async getAllUser({
+    }) {
+        try {
+            const users = await User.find();
+
+            
+            return users;
+        } catch (error) {
+            throw new AppError('Error fetching user', 500);
         }
     },
 

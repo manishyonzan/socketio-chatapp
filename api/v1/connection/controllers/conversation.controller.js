@@ -8,7 +8,7 @@ export const conversationController = {
             // Logic to create a conversation
             const { type, participants } = req.body;
 
-            const newConveersation = await conversationService.create({ type, participants });
+            const newConveersation = await conversationService.create({ type, participants: [...participants, req.user.id] });
             res.status(201).json({ message: 'Conversation created successfully', data: newConveersation });
         } catch (error) {
             next(error);

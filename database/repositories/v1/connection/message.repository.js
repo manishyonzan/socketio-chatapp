@@ -37,9 +37,9 @@ export const messageRepository = {
 
             // here needs the sorting according to date and limit the data
             const result = message.find({ conversationId })
-                .sort({ createdAt: -1 }) 
+                .sort({ createdAt: 1 }) 
                 .skip(offset)
-                .limit(limit);;
+                .limit(limit);
             return result
         } catch (error) {
             throw error
