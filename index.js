@@ -9,7 +9,9 @@ import { initializeSocket } from './sockets/socket.js';
 
 connectTOMongoDB();
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || 'localhost';
+
 const server = http.createServer(app);
 
 // Initialize socket.io
@@ -44,8 +46,8 @@ app.get("/", (req, res) => {
   res.sendFile("index.html");
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT,HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
 
 
