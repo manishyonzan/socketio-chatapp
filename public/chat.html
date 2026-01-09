@@ -6,122 +6,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socket.IO chat</title>
     <style>
+        :root{
+            --bg:#f3f6f9;
+            --muted:#64748b;
+            --primary:#2563eb;
+            --card:#ffffff;
+        }
+
+        html,body{height:100%;}
         body {
             margin: 0;
-            padding-bottom: 3rem;
+            padding: 1.5rem 1rem 3rem 1rem;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg,#f7fbff,var(--bg));
+            color: #0f172a;
         }
 
-        .container {
-            display: flex;
-            justify-content: center;
-            border: .5px solid rgb(214, 208, 208);
-            height: 85vh;
+        .container{
+            max-width: 95vw;
+            margin: 0 auto;
+            height: 95vh;
+            display:flex;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0 10px 30px rgba(15,23,42,0.06);
+            background: var(--card);
+            border:1px solid rgba(15,23,42,0.04);
         }
 
-        .container-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: start;
-            overflow-y: scroll;
-
-            h3 {
-                padding: 0;
-                margin: 0;
-                text-align: center;
-            }
+        .container-left{
+            width:320px;
+            min-width:220px;
+            background: #fbfdff;
+            border-right:1px solid rgba(15,23,42,0.03);
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
         }
 
-        .container-left .conversation {
-            border: 0.5px solid #e9e1e1;
-            color: #333;
-            padding: 5px 0px;
-            cursor: pointer;
+        .container-left h3{ padding:14px 16px; margin:0; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid rgba(15,23,42,0.03); }
 
+        #conversation-div, #unconnected-div{ padding:12px; overflow:auto; flex:1; }
 
-            h4 {
-                margin: 0;
-                padding: 0;
-            }
-
-            h5 {
-                margin: 0;
-                padding: 0;
-            }
+        .conversation, .container-left--people{
+            padding:12px;
+            margin-bottom:8px;
+            border-radius:10px;
+            cursor:pointer;
+            transition: background .12s ease;
+            transform: .08s ease;
+            display:flex;
+            flex-direction:column;
+            background:transparent;
         }
 
-        .container-left--people {
-            border: 0.5px solid #e9e1e1;
-            color: #333;
-            padding: 5px 0px;
-            cursor: pointer;
+        .conversation:hover, .container-left--people:hover{ background: rgba(37,99,235,0.06); transform: translateY(-2px); }
 
+        .conversation h4, .container-left--people h4{ margin:0; font-size:15px; color:#0b1220; }
+        .conversation h5, .container-left--people h5{ margin:6px 0 0 0; font-size:13px; color:var(--muted); }
 
-            h4 {
-                margin: 0;
-                padding: 0;
-            }
+        .container-right{ flex:1; display:flex; flex-direction:column; background: linear-gradient(180deg,#fff,#f7fbff); }
 
-            h5 {
-                margin: 0;
-                padding: 0;
-            }
-        }
+        .header{ padding:12px 16px; border-bottom:1px solid rgba(15,23,42,0.03); display:flex; align-items:center; justify-content:space-between; }
+        #roomid{ margin:0; font-size:16px; color:#0f172a; }
 
-        .container-right {
-            flex: 4;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            background-color: #e9e1e1;
-        }
+        #roomInput{ padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,42,0.06); }
 
-        #form {
-            background: rgba(0, 0, 0, 0.15);
-            padding: 0.25rem;
-            display: flex;
-            height: 3rem;
-            box-sizing: border-box;
-            backdrop-filter: blur(10px);
-        }
+        #messages{ list-style:none; margin:0; padding:16px; overflow:auto; flex:1; display:flex; flex-direction:column; gap:8px; }
 
-        #input {
-            border: none;
-            padding: 0 1rem;
-            flex-grow: 1;
-            border-radius: 2rem;
-            margin: 0.25rem;
-        }
+        /* chat bubbles */
+        #messages>li{ max-width:70%; padding:10px 14px; border-radius:16px; box-shadow:0 2px 6px rgba(2,6,23,0.04); word-wrap:break-word; }
+        #messages>li:nth-child(odd){ align-self:flex-start; background:#f1f5f9; color:#0f172a; }
+        #messages>li:nth-child(even){ align-self:flex-end; background:linear-gradient(90deg,var(--primary),#60a5fa); color:#fff; }
 
-        #input:focus {
-            outline: none;
-        }
+        #messages>li .meta{ display:block; font-size:11px; color:rgba(0,0,0,0.45); margin-top:6px; }
 
-        #form>button {
-            background: #333;
-            border: none;
-            padding: 0 1rem;
-            margin: 0.25rem;
-            border-radius: 3px;
-            outline: none;
-            color: #fff;
-        }
+        #form{ padding:12px; display:flex; gap:8px; align-items:center; border-top:1px solid rgba(15,23,42,0.03); background:transparent; }
+        #input{ flex:1; padding:12px 16px; border-radius:999px; border:1px solid rgba(15,23,42,0.06); background:#fff; }
+        #input:focus{ outline:none; box-shadow:0 6px 20px rgba(37,99,235,0.08); }
+        #form>button{ padding:10px 18px; border-radius:999px; border:none; background:var(--primary); color:#fff; cursor:pointer; box-shadow:0 8px 20px rgba(37,99,235,0.18); }
 
-        #messages {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-
-        }
-
-        #messages>li {
-            padding: 0.5rem 1rem;
-        }
-
-        #messages>li:nth-child(odd) {
-            background: #efefef;
+        @media (max-width: 800px){
+            .container{ flex-direction:column; height:92vh; }
+            .container-left{ width:100%; height:34vh; order:2; }
+            .container-right{ order:1; height:66vh; }
+            #roomInput{ display:none; }
         }
     </style>
 </head>

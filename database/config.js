@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
-const mongoURI = "mongodb://127.0.0.1:27017/chatapp";
+import 'dotenv/config'
+
+const mongoURI = process.env.MONGOURI;
 
 const connectTOMongoDB = async () => {
     mongoose.set('strictQuery', true);
